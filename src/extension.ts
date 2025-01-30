@@ -57,7 +57,7 @@ export function deactivate() { }
 
 function parseResponse(response: string): { think: string; rest: string } {
 	const match = response.match(/<think>(.*?)<\/think>/s);
-	const think = match ? match[1].trim() : response;
+	const think = match ? match[1].trim() : '<p class="thinking">Thinking...</p><br><br>' + response;
 	const rest = match ? response.replace(/<think>.*?<\/think>/s, '').trim() : '';
 	return { think, rest };
 }
@@ -77,32 +77,59 @@ function getWebviewContent(): string {
                     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                 }
                 .chat-container {
-                    max-height: 400px;
-                    overflow-y: scroll;
-                    margin-bottom: 1rem;
-                }
-                .user-message {
-                    background-color: #5c6bc0;
-                    color: white;
-                    align-self: flex-end;
-                }
+				    display: flex;
+				    flex-direction: column;
+				    align-items: flex-start; /* Aligns messages to the left by default */
+				    min-height: 25rem;
+				    overflow-y: scroll;
+				    scrollbar-width: none;
+				    margin-bottom: 1rem;
+				    background-color: #1e1e1e;
+				    border-radius: 0.5rem;
+				    padding: 1rem;
+				}
+				
+				.user-prompt {
+				    background-color: rgb(107, 107, 107);
+				    min-width: 15%;
+				    max-width: 70%;
+				    padding: 0.5rem;
+				    margin: 1rem;
+				    border-radius: 0.5rem;
+				    min-height: 5rem;
+				    margin-left: auto; /* Moves it to the right */
+				}
+
 				.message {
-					background-color: black;
-					padding: 1rem;
+					background-color: #424242;
+					min-width: 15%;
+					max-width: 70%;
+					padding: 0.5rem;
+					margin: 1rem;
 					border-radius: 0.5rem;
 					min-height: 5rem;
+				}
+				.thinking {
+					color: #007acc;
+					font-weight: bold;
 				}
 				.thought {
 					background-color:rgb(41, 48, 77);
 					padding: 1rem;
-					border-radius: 0.5rem;
 					min-height: 5rem;
+					border-top-left-radius: 0.5rem;
+					border-top-right-radius: 0.5rem;
+					border-bottom-left-radius: 0;
+					border-bottom-right-radius: 0;
 				}
 				.response {
 					background-color: #595858;
 					padding: 1rem;
-					border-radius: 0.5rem;
 					min-height: 5rem;
+					border-top-left-radius: 0;
+					border-top-right-radius: 0;
+					border-bottom-left-radius: 0.5rem;
+					border-bottom-right-radius: 0.5rem;
 				}
                 .prompt {
                     width: 98%;
@@ -115,6 +142,14 @@ function getWebviewContent(): string {
                     background-color: #757575;
                     resize: none;
                 }
+
+				.thought h1, .response h1 { font-size: 1.5em; font-weight: bold; color: #7d76f2; }
+				.thought h2, .response h2 { font-size: 1.3em; font-weight: bold; color: #62bbf1; }
+				.thought h3, .response h3 { font-size: 1.2em; font-weight: bold; color: #00d4ff; }
+				.thought p, .response p { margin: 0.5rem 0; }
+				.thought code, .response code { background-color: #333; padding: 2px 4px; border-radius: 4px; font-family: monospace; }
+				.thought pre, .response pre { background-color: #222; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+
             </style>
         </head>
         <body>
@@ -123,7 +158,9 @@ function getWebviewContent(): string {
                 <div class="chat-container" id="chatContainer"></div>
                 <textarea id="prompt" class="prompt" placeholder="Enter your prompt..."></textarea>
             </div>
-        
+
+			<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+			<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
             <script>
                 const vscode = acquireVsCodeApi();
 
@@ -131,6 +168,14 @@ function getWebviewContent(): string {
                 document.getElementById('prompt').addEventListener('keydown', (event) => {
                     if (event.key === 'Enter' && !event.shiftKey) {
                         const text = document.getElementById('prompt').value;
+
+						const userPrompt = document.createElement('div');
+                        userPrompt.classList.add('user-prompt');
+						userPrompt.innerHTML = DOMPurify.sanitize(marked.parse(text || ''));
+                        document.getElementById('prompt').value = "";
+
+						chatContainer.appendChild(userPrompt);
+
                         disableInput(true);
                         vscode.postMessage({ command: 'chat', text });
                         event.preventDefault();
@@ -144,8 +189,13 @@ function getWebviewContent(): string {
                         const chatContainer = document.getElementById('chatContainer');
                         const response = document.getElementById(message.responseId);
 
+						// Ensure Markdown is converted correctly
+            			let thinkHTML = DOMPurify.sanitize(marked.parse(message.think || ''));
+            			let restHTML = DOMPurify.sanitize(marked.parse(message.rest || ''));
+
+
 						if (response) {
-							response.innerHTML = '<div class="thought">' + (message.think || 'N/A') + '</div> <div class="response">' + (message.rest || 'N/A') + '</div>';
+							response.innerHTML = '<div class="thought">' + (thinkHTML || 'No thinking required') + '</div> <div class="response">' + (restHTML || '') + '</div>';
 
 							chatContainer.appendChild(response);
 						} else {
@@ -153,7 +203,7 @@ function getWebviewContent(): string {
                         	newResponse.classList.add('message');
 							newResponse.id = message.responseId;
 
-							newResponse.innerHTML = '<div class="thought">' + (message.think || 'N/A') + '</div> <div class="response">' + (message.rest || 'N/A') + '</div>';
+							newResponse.innerHTML = '<div class="thought">' + (thinkHTML || 'No thinking required') + '</div> <div class="response">' + (restHTML || '') + '</div>';
 
 							chatContainer.appendChild(newResponse);
 						}
@@ -161,7 +211,6 @@ function getWebviewContent(): string {
                     } 
                     else if (message.command === 'finished') {
                         const textarea = document.getElementById('prompt');
-                        textarea.value = "";
                         disableInput(false);
                     }
                 });
