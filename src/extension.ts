@@ -96,7 +96,7 @@ function getWebviewContent(): string {
 				    padding: 0.5rem;
 				    margin: 1rem;
 				    border-radius: 0.5rem;
-				    min-height: 5rem;
+				    min-height: 2rem;
 				    margin-left: auto; /* Moves it to the right */
 				}
 
@@ -104,10 +104,10 @@ function getWebviewContent(): string {
 					background-color: #424242;
 					min-width: 15%;
 					max-width: 70%;
-					padding: 0.5rem;
+					padding: 0rem;
 					margin: 1rem;
 					border-radius: 0.5rem;
-					min-height: 5rem;
+					min-height: 2rem;
 				}
 				.thinking {
 					color: #007acc;
@@ -116,16 +116,16 @@ function getWebviewContent(): string {
 				.thought {
 					background-color:rgb(41, 48, 77);
 					padding: 1rem;
-					min-height: 5rem;
+					min-height: 2rem;
 					border-top-left-radius: 0.5rem;
 					border-top-right-radius: 0.5rem;
 					border-bottom-left-radius: 0;
 					border-bottom-right-radius: 0;
 				}
 				.response {
-					background-color: #595858;
+					background-color: #424242;
 					padding: 1rem;
-					min-height: 5rem;
+					min-height: 2rem;
 					border-top-left-radius: 0;
 					border-top-right-radius: 0;
 					border-bottom-left-radius: 0.5rem;
@@ -143,8 +143,8 @@ function getWebviewContent(): string {
                     resize: none;
                 }
 
-				.thought h1, .response h1 { font-size: 1.5em; font-weight: bold; color: #7d76f2; }
-				.thought h2, .response h2 { font-size: 1.3em; font-weight: bold; color: #62bbf1; }
+				.thought h1, .response h1 { font-size: 2em; font-weight: bold; color: #7d76f2; }
+				.thought h2, .response h2 { font-size: 1.5em; font-weight: bold; color: #62bbf1; }
 				.thought h3, .response h3 { font-size: 1.2em; font-weight: bold; color: #00d4ff; }
 				.thought p, .response p { margin: 0.5rem 0; }
 				.thought code, .response code { background-color: #333; padding: 2px 4px; border-radius: 4px; font-family: monospace; }
@@ -198,7 +198,7 @@ function getWebviewContent(): string {
 							if (thinkHTML){
 								response.innerHTML = '<div class="thought">' + thinkHTML + '</div> <div class="response">' + (restHTML || '') + '</div>';
 							} else {
-								response.innerHTML = '</div> <div class="response">' + (restHTML || '') + '</div>';
+								response.innerHTML = '<div class="response" style="border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem;">' + (restHTML || '') + '</div>';
 							}
 							chatContainer.appendChild(response);
 						} else {
@@ -209,7 +209,7 @@ function getWebviewContent(): string {
 							if (thinkHTML){
 								newResponse.innerHTML = '<div class="thought">' + thinkHTML + '</div> <div class="response">' + (restHTML || '') + '</div>';
 							} else {
-								newResponse.innerHTML = '</div> <div class="response">' + (restHTML || '') + '</div>';
+								newResponse.innerHTML = '<div class="response" style="border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem;">' + (restHTML || '') + '</div>';
 							}
 
 							chatContainer.appendChild(newResponse);
