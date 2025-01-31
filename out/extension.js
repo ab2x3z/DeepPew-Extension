@@ -218,15 +218,22 @@ function getWebviewContent() {
 
 
 						if (response) {
-							response.innerHTML = '<div class="thought">' + (thinkHTML || 'No thinking required') + '</div> <div class="response">' + (restHTML || '') + '</div>';
-
+							if (thinkHTML){
+								response.innerHTML = '<div class="thought">' + thinkHTML + '</div> <div class="response">' + (restHTML || '') + '</div>';
+							} else {
+								response.innerHTML = '</div> <div class="response">' + (restHTML || '') + '</div>';
+							}
 							chatContainer.appendChild(response);
 						} else {
 							const newResponse = document.createElement('div');
                         	newResponse.classList.add('message');
 							newResponse.id = message.responseId;
 
-							newResponse.innerHTML = '<div class="thought">' + (thinkHTML || 'No thinking required') + '</div> <div class="response">' + (restHTML || '') + '</div>';
+							if (thinkHTML){
+								newResponse.innerHTML = '<div class="thought">' + thinkHTML + '</div> <div class="response">' + (restHTML || '') + '</div>';
+							} else {
+								newResponse.innerHTML = '</div> <div class="response">' + (restHTML || '') + '</div>';
+							}
 
 							chatContainer.appendChild(newResponse);
 						}
