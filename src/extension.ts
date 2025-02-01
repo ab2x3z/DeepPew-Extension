@@ -7,7 +7,7 @@ export function activate(context: vscode.ExtensionContext) {
     const disposable = vscode.commands.registerCommand('DeepPew.start', () => {
         const panel = vscode.window.createWebviewPanel(
             'deepChat',
-            'DeepPew Chat',
+            'DeepPew',
             vscode.ViewColumn.One,
             { 
                 enableScripts: true,
@@ -139,7 +139,7 @@ function getWebviewContent(): string {
                     border-radius: 0.5rem;
                     font-family: Arial, sans-serif; 
                     color: #c9c9c9;
-                    background-color: #757575;
+                    background-color:rgb(50, 50, 69);
                     resize: none;
                 }
                 .model-selector {
@@ -148,7 +148,7 @@ function getWebviewContent(): string {
                     margin-bottom: 1rem;
                     border-radius: 0.5rem;
                     background-color: #2e2e2e;
-                    color: #c9c9c9;
+                    color: #2c7ad6;
                     border: 1px solid #ccc;
                 }
                 .thought h1, .response h1 { font-size: 2em; font-weight: bold; color: #7d76f2; }
@@ -161,13 +161,12 @@ function getWebviewContent(): string {
         </head>
         <body>
             <div class="panel">
-                <h3>DeepPew</h3>
+                <div class="chat-container" id="chatContainer"></div>
                 <select id="modelSelector" class="model-selector">
                     <option value="deepseek-r1:1.5b">deepseek-r1:1.5b</option>
                     <option value="deepseek-r1:8b" selected>deepseek-r1:8b</option>
                     <option value="deepseek-r1:14b">deepseek-r1:14b</option>
                 </select>
-                <div class="chat-container" id="chatContainer"></div>
                 <textarea id="prompt" class="prompt" placeholder="Enter your prompt..."></textarea>
             </div>
 
@@ -176,7 +175,8 @@ function getWebviewContent(): string {
             <script>
                 const vscode = acquireVsCodeApi();
 
-                document.getElementById('prompt').addEventListener('keydown', (event) => {
+                const promptTextarea = document.getElementById('prompt');
+                promptTextarea.addEventListener('keydown', (event) => {
                     if (event.key === 'Enter' && !event.shiftKey) {
                         const text = document.getElementById('prompt').value;
                         const model = document.getElementById('modelSelector').value;
@@ -188,11 +188,21 @@ function getWebviewContent(): string {
 
                         document.getElementById('chatContainer').appendChild(userPrompt);
 
+                        autoResizeTextarea();
                         disableInput(true);
                         vscode.postMessage({ command: 'chat', text, model });
                         event.preventDefault();
                     }
                 });
+                // Function to auto-resize the textarea
+                function autoResizeTextarea() {
+                    promptTextarea.style.height = 'auto'; // Reset the height
+                    promptTextarea.style.height = promptTextarea.scrollHeight + 'px'; // Set to scrollHeight
+                }
+                // Call the function initially in case there's any pre-filled content
+                autoResizeTextarea();
+                // Listen for input events to auto-resize
+                promptTextarea.addEventListener('input', autoResizeTextarea);
 
                 window.addEventListener('message', (event) => {
                     const message = event.data;
