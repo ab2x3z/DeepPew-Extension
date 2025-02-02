@@ -59,6 +59,9 @@ function activate(context) {
                         messages: [{ role: 'user', content: userPrompt }],
                         stream: true
                     });
+                    if (message.abort) {
+                        streamResponse.abort();
+                    }
                     const id = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
                     for await (const part of streamResponse) {
                         responseText += part.message.content;
@@ -164,12 +167,13 @@ function getWebviewContent() {
                     transition: max-height 0.3s ease, padding 0.3s ease;
                 }
                 .thought.closed {
+                    content: 'Thoughts...';
                     max-height: 0;
                     padding-top: 0;
                     padding-bottom: 0;
                 }
                 .response {
-                    background-color: #424242;
+                    background-color:rgb(29, 22, 48);
                     padding: 1rem;
                     min-height: 2rem;
                     border-top-left-radius: 0;
@@ -216,6 +220,7 @@ function getWebviewContent() {
                     <option value="codegemma:5b">codegemma:5b</option>
                 </select>
                 <textarea id="prompt" class="prompt" placeholder="Enter your prompt..."></textarea>
+                <button id="stop" >STOP</button>
             </div>
             
             <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
@@ -243,7 +248,14 @@ function getWebviewContent() {
                         event.preventDefault();
                     }
                 });
-            
+                
+                // Stop button
+                const stopBtn = document.getElementById('stop');
+                stopBtn.addEventListener('click', (event) => {
+                        vscode.postMessage({ command: 'chat', abort: true });
+                        event.preventDefault();
+                });
+
                 // Function to auto-resize the textarea
                 function autoResizeTextarea() {
                     promptTextarea.style.height = 'auto'; // Reset the height
