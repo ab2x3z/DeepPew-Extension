@@ -63,7 +63,7 @@ function activate(context) {
                     for await (const part of streamResponse) {
                         responseText += part.message.content;
                         let parsedResponse;
-                        parsedResponse = parseResponse(responseText, (model === 'deepseek-r1:1.5b' || model === 'deepseek-r1:8b' || model === 'deepseek-r1:14b'));
+                        parsedResponse = parseResponse(responseText, (model === 'deepseek-r1:1.5b' || model === 'deepseek-r1:8b-llama-distill-q8_0' || model === 'deepseek-r1:14b'));
                         // Send response updates to the webview
                         panel.webview.postMessage({
                             command: 'chatResponse',
@@ -148,14 +148,25 @@ function getWebviewContent() {
                     color: #007acc;
                     font-weight: bold;
                 }
+                /* Collapsible Thought Styles */
                 .thought {
-                    background-color:rgb(41, 48, 77);
+                    font-style: italic;
+                    background-color: rgb(41, 48, 77);
                     padding: 1rem;
                     min-height: 2rem;
                     border-top-left-radius: 0.5rem;
                     border-top-right-radius: 0.5rem;
                     border-bottom-left-radius: 0;
                     border-bottom-right-radius: 0;
+                    overflow: hidden;
+                    cursor: pointer;
+                    max-height: 1000px; /* Ensure this is large enough */
+                    transition: max-height 0.3s ease, padding 0.3s ease;
+                }
+                .thought.closed {
+                    max-height: 0;
+                    padding-top: 0;
+                    padding-bottom: 0;
                 }
                 .response {
                     background-color: #424242;
@@ -174,7 +185,7 @@ function getWebviewContent() {
                     border-radius: 0.5rem;
                     font-family: Arial, sans-serif; 
                     color: #c9c9c9;
-                    background-color:rgb(50, 50, 69);
+                    background-color: rgb(50, 50, 69);
                     resize: none;
                 }
                 .model-selector {
@@ -199,7 +210,7 @@ function getWebviewContent() {
                 <div class="chat-container" id="chatContainer"></div>
                 <select id="modelSelector" class="model-selector">
                     <option value="deepseek-r1:1.5b">deepseek-r1:1.5b</option>
-                    <option value="deepseek-r1:8b">deepseek-r1:8b</option>
+                    <option value="deepseek-r1:8b-llama-distill-q8_0">deepseek-r1:8b-llama-distill-q8_0</option>
                     <option value="deepseek-r1:14b">deepseek-r1:14b</option>
                     <option value="deepseek-coder-v2:16b" selected>deepseek-coder-v2:16b</option>
                     <option value="phi4:14b">phi4:14b</option>
@@ -207,31 +218,33 @@ function getWebviewContent() {
                 </select>
                 <textarea id="prompt" class="prompt" placeholder="Enter your prompt..."></textarea>
             </div>
-
+            
             <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
             <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
             <script>
                 const vscode = acquireVsCodeApi();
-
+                marked.setOptions({ breaks: true });
+            
                 const promptTextarea = document.getElementById('prompt');
                 promptTextarea.addEventListener('keydown', (event) => {
                     if (event.key === 'Enter' && !event.shiftKey) {
                         const text = document.getElementById('prompt').value;
                         const model = document.getElementById('modelSelector').value;
-
+                    
                         const userPrompt = document.createElement('div');
                         userPrompt.classList.add('user-prompt');
                         userPrompt.innerHTML = DOMPurify.sanitize(marked.parse(text || ''));
                         document.getElementById('prompt').value = "";
-
+                    
                         document.getElementById('chatContainer').appendChild(userPrompt);
-
+                    
                         autoResizeTextarea();
                         disableInput(true);
                         vscode.postMessage({ command: 'chat', text, model });
                         event.preventDefault();
                     }
                 });
+            
                 // Function to auto-resize the textarea
                 function autoResizeTextarea() {
                     promptTextarea.style.height = 'auto'; // Reset the height
@@ -241,17 +254,17 @@ function getWebviewContent() {
                 autoResizeTextarea();
                 // Listen for input events to auto-resize
                 promptTextarea.addEventListener('input', autoResizeTextarea);
-
+            
                 window.addEventListener('message', (event) => {
                     const message = event.data;
                     
                     if (message.command === 'chatResponse') {
                         const chatContainer = document.getElementById('chatContainer');
-                        const response = document.getElementById(message.responseId);
-
+                        let response = document.getElementById(message.responseId);
+                    
                         let thinkHTML = DOMPurify.sanitize(marked.parse(message.think || ''));
                         let restHTML = DOMPurify.sanitize(marked.parse(message.rest || ''));
-
+                    
                         if (response) {
                             if (thinkHTML) {
                                 response.innerHTML = '<div class="thought">' + thinkHTML + '</div> <div class="response">' + (restHTML || '') + '</div>';
@@ -263,21 +276,31 @@ function getWebviewContent() {
                             const newResponse = document.createElement('div');
                             newResponse.classList.add('message');
                             newResponse.id = message.responseId;
-
+                        
                             if (thinkHTML) {
                                 newResponse.innerHTML = '<div class="thought">' + thinkHTML + '</div> <div class="response">' + (restHTML || '') + '</div>';
                             } else {
                                 newResponse.innerHTML = '<div class="response" style="border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem;">' + (restHTML || '') + '</div>';
                             }
-
+                        
                             chatContainer.appendChild(newResponse);
+                            response = newResponse;
                         }
+                        
+                        // Attach click listener to the .thought div for toggling
+                        const thoughtDiv = response.querySelector('.thought');
+                        if (thoughtDiv) {
+                            thoughtDiv.addEventListener('click', () => {
+                                thoughtDiv.classList.toggle('closed');
+                            });
+                        }
+                    
                         chatContainer.scrollTop = chatContainer.scrollHeight;
                     } else if (message.command === 'finished') {
                         disableInput(false);
                     }
                 });
-
+            
                 function disableInput(disable) {
                     document.getElementById('prompt').disabled = disable;
                 }
