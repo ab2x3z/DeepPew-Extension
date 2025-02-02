@@ -210,10 +210,9 @@ function getWebviewContent() {
                 <div class="chat-container" id="chatContainer"></div>
                 <select id="modelSelector" class="model-selector">
                     <option value="deepseek-r1:1.5b">deepseek-r1:1.5b</option>
-                    <option value="deepseek-r1:8b-llama-distill-q8_0">deepseek-r1:8b-llama-distill-q8_0</option>
+                    <option value="deepseek-r1:8b-llama-distill-q8_0">deepseek-r1:8b-q8</option>
                     <option value="deepseek-r1:14b">deepseek-r1:14b</option>
                     <option value="deepseek-coder-v2:16b" selected>deepseek-coder-v2:16b</option>
-                    <option value="phi4:14b">phi4:14b</option>
                     <option value="codegemma:5b">codegemma:5b</option>
                 </select>
                 <textarea id="prompt" class="prompt" placeholder="Enter your prompt..."></textarea>
@@ -257,7 +256,7 @@ function getWebviewContent() {
             
                 window.addEventListener('message', (event) => {
                     const message = event.data;
-                    
+
                     if (message.command === 'chatResponse') {
                         const chatContainer = document.getElementById('chatContainer');
                         let response = document.getElementById(message.responseId);
@@ -286,7 +285,7 @@ function getWebviewContent() {
                             chatContainer.appendChild(newResponse);
                             response = newResponse;
                         }
-                        
+
                         // Attach click listener to the .thought div for toggling
                         const thoughtDiv = response.querySelector('.thought');
                         if (thoughtDiv) {
