@@ -51,7 +51,7 @@ function activate(context) {
         panel.webview.onDidReceiveMessage(async (message) => {
             if (message.command === 'chat') {
                 const userPrompt = message.text;
-                const model = message.model || 'deepseek-r1:8b'; // default model if not provided
+                const model = message.model || 'deepseek-coder-v2:16b'; // default model if not provided
                 let responseText = '';
                 try {
                     const streamResponse = await ollama_1.default.chat({
@@ -62,7 +62,8 @@ function activate(context) {
                     const id = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
                     for await (const part of streamResponse) {
                         responseText += part.message.content;
-                        const parsedResponse = parseResponse(responseText);
+                        let parsedResponse;
+                        parsedResponse = parseResponse(responseText, (model === 'deepseek-r1:1.5b' || model === 'deepseek-r1:8b' || model === 'deepseek-r1:14b'));
                         // Send response updates to the webview
                         panel.webview.postMessage({
                             command: 'chatResponse',
@@ -83,10 +84,19 @@ function activate(context) {
     context.subscriptions.push(disposable);
 }
 function deactivate() { }
-function parseResponse(response) {
-    const match = response.match(/<think>(.*?)<\/think>/s);
-    const think = match ? match[1].trim() : '<p class="thinking">Thinking...</p><br><br>' + response;
-    const rest = match ? response.replace(/<think>.*?<\/think>/s, '').trim() : '';
+function parseResponse(response, thought) {
+    let match;
+    let think;
+    let rest;
+    if (thought) {
+        match = response.match(/<think>(.*?)<\/think>/s);
+        think = match ? match[1].trim() : '<p class="thinking">Thinking...</p><br><br>' + response;
+        rest = match ? response.replace(/<think>.*?<\/think>/s, '').trim() : '';
+    }
+    else {
+        think = '';
+        rest = response;
+    }
     return { think, rest };
 }
 function getWebviewContent() {
@@ -189,8 +199,11 @@ function getWebviewContent() {
                 <div class="chat-container" id="chatContainer"></div>
                 <select id="modelSelector" class="model-selector">
                     <option value="deepseek-r1:1.5b">deepseek-r1:1.5b</option>
-                    <option value="deepseek-r1:8b" selected>deepseek-r1:8b</option>
+                    <option value="deepseek-r1:8b">deepseek-r1:8b</option>
                     <option value="deepseek-r1:14b">deepseek-r1:14b</option>
+                    <option value="deepseek-coder-v2:16b" selected>deepseek-coder-v2:16b</option>
+                    <option value="phi4:14b">phi4:14b</option>
+                    <option value="codegemma:5b">codegemma:5b</option>
                 </select>
                 <textarea id="prompt" class="prompt" placeholder="Enter your prompt..."></textarea>
             </div>
