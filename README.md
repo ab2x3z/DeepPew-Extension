@@ -8,20 +8,20 @@ deepseek-r1:8b
 
 ## Requirements
 
-¯\_(ツ)_/¯
+¯\\_(ツ)_/¯
 
 ## Extension Settings
 
-¯\_(ツ)_/¯
+¯\\_(ツ)_/¯
 
 ## Known Issues
 
-¯\_(ツ)_/¯
+¯\\_(ツ)_/¯
 
 ## Release Notes
 
-¯\_(ツ)_/¯
+¯\\_(ツ)_/¯
 
 ### 1.0.0
 
-¯\_(ツ)_/¯
+¯\\_(ツ)_/¯
