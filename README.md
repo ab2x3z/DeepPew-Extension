@@ -1,27 +1,4 @@
 # DeepPew README
 
-This is my DeepPew.
-
-## Features
-
-deepseek-r1:8b
-
-## Requirements
-
-¯\_(ツ)_/¯
-
-## Extension Settings
-
-¯\_(ツ)_/¯
-
-## Known Issues
-
-¯\_(ツ)_/¯
-
-## Release Notes
-
-¯\_(ツ)_/¯
-
-### 1.0.0
-
-¯\_(ツ)_/¯
+I started working on this extension to chat with a local LLM through VS Code. After a bit, I searched on Google and found [Continue](https://github.com/continuedev/continue). 
+¯\\_(ツ)_/¯
